@@ -16,7 +16,7 @@ module Resque
       if defined? Yajl
         Yajl::Encoder.encode(object)
       else
-        JSON(object)
+        object.to_json
       end
     end
 
@@ -27,7 +27,7 @@ module Resque
       if defined? Yajl
         Yajl::Parser.parse(object, :check_utf8 => false)
       else
-        JSON(object)
+        JSON.parse(object)
       end
     end
 
