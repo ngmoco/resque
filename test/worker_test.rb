@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/test_helper'
 context "Resque::Worker" do
   setup do
     Resque.redis.flush_all
+    Resque.remove_all_queues
 
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')

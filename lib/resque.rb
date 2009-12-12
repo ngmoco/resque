@@ -129,10 +129,17 @@ module Resque
     # In order to avoid hitting Redis every time a job is queued we
     # cache the list of known queues.
     @watched_queues ||= {}
-    return if @watched_queues[queue]
+    return if @watched_queues[queue.to_s]
     redis.sadd(:queues, queue.to_s)
+    @watched_queues[queue.to_s] = true
   end
 
+  # Used internally to completely delete all queues.
+  # Don't call this directly.
+  def remove_all_queues
+    queues.each { |queue| remove_queue(queue) }
+    @watched_queues = {}
+  end
 
   #
   # job shortcuts

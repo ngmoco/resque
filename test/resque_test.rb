@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/test_helper'
 context "Resque" do
   setup do
     Resque.redis.flush_all
+    Resque.remove_all_queues
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
@@ -147,6 +148,31 @@ context "Resque" do
     Resque.remove_queue(:people)
     assert_equal %w( cars ), Resque.queues
     assert_equal nil, Resque.pop(:people)
+  end
+
+  test "can delete all queues" do
+    Resque.push(:cars, { 'make' => 'bmw' })
+    assert_equal %w( cars people ), Resque.queues
+    Resque.remove_all_queues
+    assert_equal [], Resque.queues
+    assert_equal nil, Resque.pop(:people)
+  end
+
+  test "caches watched queues" do
+    assert Resque.watch_queue(:cars)      # Not yet cached
+    assert_nil Resque.watch_queue(:cars)  # Cached now
+  end
+
+  test "deleting a single queue clears it from cache" do
+    assert_nil Resque.watch_queue(:people)  # Already cached
+    Resque.remove_queue(:people)
+    assert Resque.watch_queue(:people)      # Not cached now
+  end
+
+  test "deleting all queues clears cache" do
+    assert_nil Resque.watch_queue(:people)  # Already cached
+    Resque.remove_all_queues
+    assert Resque.watch_queue(:people)      # Not cached now
   end
 
   test "keeps track of resque keys" do
