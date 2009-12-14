@@ -16,10 +16,24 @@ require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
 
+require 'logger'
+
 module Resque
   include Helpers
   extend self
 
+  def logger=(logger)
+    @logger = logger
+  end
+  
+  def logger
+    unless @logger
+      @logger = Logger.new(STDOUT)
+      @logger.level = Logger::WARN
+    end
+    @logger
+  end
+  
   # Accepts a 'hostname:port' string or a Redis server.
   def redis=(server)
     case server
@@ -54,6 +68,7 @@ module Resque
   # Pushes a job onto a queue. Queue name should be a string and the
   # item should be any JSON-able Ruby object.
   def push(queue, item)
+    logger.debug("push:#{queue}, #{encode(item)}") if logger
     watch_queue(queue)
     redis.rpush "queue:#{queue}", encode(item)
   end

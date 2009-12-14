@@ -15,6 +15,10 @@ namespace :resque do
       worker = Resque::Worker.new(*queues)
       worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
       worker.very_verbose = ENV['VVERBOSE']
+      if worker.logger && worker.logger.kind_of?(Logger)
+        worker.logger.level = Logger::INFO  if worker.verbose
+        worker.logger.level = Logger::DEBUG if worker.very_verbose
+      end
     rescue Resque::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end

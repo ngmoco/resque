@@ -6,6 +6,10 @@ module Resque
       Resque.redis
     end
 
+    def logger
+      Resque.logger
+    end
+    
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
