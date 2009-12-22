@@ -95,6 +95,10 @@ module Resque
         "<p class='poll'>#{text}</p>"
       end
       
+      def format_date(date_str)
+        Time.parse(date_str).rfc2822
+      end
+      
     end
 
     def show(page, layout = true)

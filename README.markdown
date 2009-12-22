@@ -497,6 +497,13 @@ install and run Redis for you:
     $ rake redis:install dtach:install
     $ rake redis:start
 
+Or, if you don't have admin access on your machine:
+
+    $ git clone git://github.com/defunkt/resque.git
+    $ cd resque
+    $ PREFIX=<your_prefix> rake redis:install dtach:install
+    $ rake redis:start
+
 You now have Redis running on 6379. Wait a second then hit ctrl-\ to
 detach and keep it running in the background.
 
@@ -715,6 +722,8 @@ Meta
 * Chat: <irc://irc.freenode.net/resque>
 * Gems: <http://gemcutter.org/gems/resque>
 
+This project uses [Semantic Versioning][sv].
+
 
 Author
 ------
@@ -724,3 +733,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [0]: http://github.com/blog/542-introducing-resque
 [1]: http://help.github.com/forking/
 [2]: http://github.com/defunkt/resque/issues
+[sv]: http://semver.org/

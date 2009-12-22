@@ -1,8 +1,9 @@
-## 1.2.3 (2009-??-??)
+## 1.2.3 (2009-12-15)
 
 * Bugfix: Fixed `rand` seeding in child processes.
 * Bugfix: Better JSON encoding/decoding without Yajl.
 * Bugfix: Avoid `ps` flag error on Linux
+* Add `PREFIX` observance to `rake` install tasks.
 
 ## 1.2.2 (2009-12-08)
 
