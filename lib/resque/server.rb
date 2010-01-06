@@ -156,9 +156,7 @@ module Resque
         args = request.params['args']
       end
       Job.create(request.params['queue'], request.params['class'], args)
-      # redirect u('failed')
-      content_type 'text/plain'
-      request.params.inspect + "/n" + args.inspect
+      redirect u('failed')
     end
 
     get "/stats" do
