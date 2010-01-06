@@ -14,17 +14,23 @@
   <%for job in failed%>
     <li>
       <dl>
-        <dt>Worker</dt>
-        <dd><a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= format_date job['failed_at'] %></span></b></dd>
-        <dt>Class</dt>
-        <dd><code><%= job['payload']['class'] %></code></dd>
-        <dt>Arguments</dt>
-        <dd><pre><%=h show_args(job['payload']['args']) %></pre></dd>
-        <dt>Error</dt>
-        <dd class='error'>
-          <a href="#" class="backtrace"><%= h(job['error']) %></a>
-          <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>          
-        </dd>
+		<form method="POST" action="<%=u 'failures/rerun'%>" class='rerun-failed'>
+	        <dt>Worker</dt>
+	        <dd><a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= format_date job['failed_at'] %></span></b></dd>
+	        <dt>Class</dt>
+	        <dd><code><%= job['payload']['class'] %></code></dd>
+	        <dt>Arguments</dt>
+	        <dd><pre><%=h show_args(job['payload']['args']) %></pre></dd>
+	        <dt>Error</dt>
+	        <dd class='error'>
+	          <a href="#" class="backtrace"><%= h(job['error']) %></a>
+	          <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>          
+	        </dd>
+			<input type='hidden' name='queue' value='<%= job['queue'] %>' />
+			<input type='hidden' name='class' value='<%= job['payload']['class'] %>' />
+			<input type='hidden' name='args' value='<%= job['payload']['args'] %>' />
+		    <input type='submit' name='' value='ReRun Failed Job' />
+		</form>
       </dl>
       <div class='r'>
       </div>

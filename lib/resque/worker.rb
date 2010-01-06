@@ -152,8 +152,6 @@ module Resque
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e)
         failed!
-        # Put the job back on the queue to rerun
-        job.recreate
       else
         log "done: #{job.inspect}"
       ensure

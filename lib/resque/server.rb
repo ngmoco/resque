@@ -149,6 +149,18 @@ module Resque
       redirect u('failed')
     end
 
+    post "/failures/rerun" do
+      if request.params['args'].nil? || request.params['args'].empty?
+        args = {}
+      else
+        args = request.params['args']
+      end
+      Job.create(request.params['queue'], request.params['class'], args)
+      # redirect u('failed')
+      content_type 'text/plain'
+      request.params.inspect + "/n" + args.inspect
+    end
+
     get "/stats" do
       redirect url("/stats/resque")
     end
