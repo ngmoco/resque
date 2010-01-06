@@ -41,6 +41,10 @@ module Resque
         "<li #{class_if_current(dname)}><a href='#{url dname}'>#{name}</a></li>"
       end
 
+      def tabs
+        Resque::Server.tabs
+      end
+      
       def redis_get_type(key)
         Resque.redis.type("resque:" + key) 
       end
@@ -177,6 +181,14 @@ module Resque
 
     def resque
       Resque
+    end
+    
+    class << self
+      
+      def tabs
+        @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
+      end
+      
     end
   end
 end
