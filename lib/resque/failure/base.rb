@@ -53,6 +53,9 @@ module Resque
       def log(message)
         @worker.log(message)
       end
+      
+      def self.remove(index)
+      end
     end
   end
 end

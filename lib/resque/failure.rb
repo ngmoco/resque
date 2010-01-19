@@ -59,5 +59,8 @@ module Resque
       backend.clear
     end
     
+    def self.remove(index = 0)
+      backend.remove(index)
+    end
   end
 end

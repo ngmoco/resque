@@ -28,6 +28,14 @@ module Resque
         Resque.redis.delete('resque:failed')
       end
       
+      def self.remove(index = 0)
+        if index == 0
+          Resque.redis.lpop(:failed)
+        else
+          value = Resque.redis.lindex(:failed, index)
+          Resque.redis.lrem(:failed, 1, value)
+        end
+      end
     end
   end
 end
