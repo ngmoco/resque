@@ -149,13 +149,26 @@ module Resque
       redirect u('failed')
     end
 
-    post "/failures/rerun" do
-      if request.params['args'].nil? || request.params['args'].empty?
-        args = {}
-      else
-        args = request.params['args']
+    post "/failed/remove" do
+      if !request.params['index'].nil? && !request.params['index'].empty?
+        index = params['index'].to_i
+        failed = Resque::Failure.all(index)
+        if failed
+          Resque::Failure.remove(index)
+        end
       end
-      Job.create(request.params['queue'], request.params['class'], args)
+      redirect u('failed')
+    end
+
+    post "/failed/rerun" do
+      if !request.params['index'].nil? && !request.params['index'].empty?
+        index = params['index'].to_i
+        failed = Resque::Failure.all(index)
+        if failed
+          Resque.push(failed['queue'], :class =>  failed['payload']['class'], :args => failed['payload']['args'])
+          Resque::Failure.remove(index)
+        end
+      end
       redirect u('failed')
     end
 
