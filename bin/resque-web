@@ -9,10 +9,9 @@ rescue LoadError
 end  
 require 'resque/server'
 
-
 Vegas::Runner.new(Resque::Server, 'resque-web', {
   :before_run => lambda {|v|
-    path = (ENV['RESQUECONFIG'] || v.args.first).strip
+    path = (ENV['RESQUECONFIG'] || v.args.first).strip if ENV['RESQUECONFIG'] || v.args.first
     load path if path
   }
 })
