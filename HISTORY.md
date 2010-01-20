@@ -1,3 +1,19 @@
+## 1.3.1 (2010-01-11)
+
+* Vegas bugfix: Don't error without a config
+
+## 1.3.0 (2010-01-11)
+
+* Use Vegas for resque-web
+* Web Bugfix: Show proper date/time value for failed_at on Failures
+* Web Bugfix: Make the / route more flexible
+* Add Resque::Server.tabs array (so plugins can add their own tabs)
+* Start using Semantic Versioning
+
+## 1.2.4 (2009-12-15)
+
+* Web Bugfix: fix key links on stat page
+
 ## 1.2.3 (2009-12-15)
 
 * Bugfix: Fixed `rand` seeding in child processes.
