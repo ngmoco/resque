@@ -29,6 +29,7 @@ module Resque
       end
       
       def self.remove(index = 0)
+        Resque.logger.info("Failure Backend Remove #{index}")
         if index == 0
           Resque.redis.lpop(:failed)
         else
