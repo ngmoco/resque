@@ -330,7 +330,6 @@ module Resque
     # and tells Redis we processed a job.
     def done_working
       processed!
-
       redis.del("worker:#{self}")
     end
 

@@ -133,6 +133,7 @@ module Resque
     redis.sadd(:queues, queue.to_s)
   end
 
+
   #
   # job shortcuts
   #

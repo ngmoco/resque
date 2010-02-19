@@ -44,7 +44,6 @@ module Resque
         raise NoClassError.new("Jobs must be given a class.")
       end
     end
-    public
 
     # Removes a job from a queue. Expects a string queue name, a
     # string class name, and, optionally, args.
