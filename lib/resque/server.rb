@@ -63,7 +63,7 @@ module Resque
       end
 
       def redis_get_value_as_array(key)
-        case Resque.redis.type("resque:" + key)
+        case redis_get_type(key)
         when 'none'
           []
         when 'list'
