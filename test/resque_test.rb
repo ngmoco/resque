@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/test_helper'
 context "Resque" do
   setup do
     Resque.redis.flush_all
-    Resque.remove_all_queues
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
@@ -100,23 +99,6 @@ context "Resque" do
     assert_not_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
   end
 
-  test "multiple create_once results in one queued job" do
-    assert_equal 0, Resque.size(:jobs)
-    assert Resque::Job.create_once(:jobs, 'SomeJob', 20, '/tmp')
-    assert !Resque::Job.create_once(:jobs, 'SomeJob', 20, '/tmp')
-    assert_equal 1, Resque.size(:jobs)
-  end
-
-  test "enqueue_once jobs are cleared successfully." do
-    assert Resque::Job.create_once(:jobs, 'SomeJob', 20, '/tmp')
-    worker = Resque::Worker.new(:jobs)
-    worker.process
-
-    assert_equal 0, Resque.size(:jobs)
-    assert Resque::Job.create_once(:jobs, 'SomeJob', 20, '/tmp')
-    assert_equal 1, Resque.size(:jobs)
-  end
-
   test "can put jobs on a queue by way of a method" do
     assert_equal 0, Resque.size(:method)
     assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
@@ -130,21 +112,6 @@ context "Resque" do
     assert_equal '/tmp', job.args[1]
 
     assert Resque.reserve(:method)
-    assert_equal nil, Resque.reserve(:method)
-  end
-
-  test "can put jobs on a queue only once with a method call" do
-    assert_equal 0, Resque.size(:method)
-    assert Resque.enqueue_once(SomeMethodJob, 20, '/tmp')
-    assert !Resque.enqueue_once(SomeMethodJob, 20, '/tmp')
-
-    job = Resque.reserve(:method)
-
-    assert_kind_of Resque::Job, job
-    assert_equal SomeMethodJob, job.payload_class
-    assert_equal 20, job.args[0]
-    assert_equal '/tmp', job.args[1]
-
     assert_equal nil, Resque.reserve(:method)
   end
 
@@ -209,31 +176,6 @@ context "Resque" do
     Resque.remove_queue(:people)
     assert_equal %w( cars ), Resque.queues
     assert_equal nil, Resque.pop(:people)
-  end
-
-  test "can delete all queues" do
-    Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), Resque.queues
-    Resque.remove_all_queues
-    assert_equal [], Resque.queues
-    assert_equal nil, Resque.pop(:people)
-  end
-
-  test "caches watched queues" do
-    assert Resque.watch_queue(:cars)      # Not yet cached
-    assert_nil Resque.watch_queue(:cars)  # Cached now
-  end
-
-  test "deleting a single queue clears it from cache" do
-    assert_nil Resque.watch_queue(:people)  # Already cached
-    Resque.remove_queue(:people)
-    assert Resque.watch_queue(:people)      # Not cached now
-  end
-
-  test "deleting all queues clears cache" do
-    assert_nil Resque.watch_queue(:people)  # Already cached
-    Resque.remove_all_queues
-    assert Resque.watch_queue(:people)      # Not cached now
   end
 
   test "keeps track of resque keys" do

@@ -131,14 +131,6 @@ module Resque
   # Don't call this directly.
   def watch_queue(queue)
     redis.sadd(:queues, queue.to_s)
-    @watched_queues[queue.to_s] = true
-  end
-
-  # Used internally to completely delete all queues.
-  # Don't call this directly.
-  def remove_all_queues
-    queues.each { |queue| remove_queue(queue) }
-    @watched_queues = {}
   end
 
   #
