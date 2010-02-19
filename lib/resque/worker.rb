@@ -110,19 +110,15 @@ module Resque
       loop do
         break if @shutdown
 
-        if job = reserve
+        if not @paused and job = reserve
           log "got: #{job.inspect}"
 
           if @child = fork
             rand # Reseeding
-            procline = "resque: Forked #{@child} at #{Time.now.to_i}"
-            $0 = procline
-            log! procline
+            procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait
           else
-            procline = "resque: Processing #{job.queue} since #{Time.now.to_i}"
-            $0 = procline
-            log! procline
+            procline "Processing #{job.queue} since #{Time.now.to_i}"
             process(job, &block)
             exit! unless @cant_fork
           end
@@ -131,7 +127,7 @@ module Resque
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
-          $0 = "resque: Waiting for #{@queues.join(',')}"
+          procline @paused ? "Paused" : "Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
@@ -223,6 +219,8 @@ module Resque
     #  INT: Shutdown immediately, stop processing jobs.
     # QUIT: Shutdown after the current job has finished processing.
     # USR1: Kill the forked child immediately, continue processing jobs.
+    # USR2: Don't process any new jobs
+    # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
       trap('TERM') { shutdown!  }
       trap('INT')  { shutdown!  }
@@ -230,8 +228,10 @@ module Resque
       begin
         trap('QUIT') { shutdown   }
         trap('USR1') { kill_child }
+        trap('USR2') { pause_processing }
+        trap('CONT') { unpause_processing }
       rescue ArgumentError
-        warn "Signals QUIT and USR1 not supported."
+        warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
       log! "Registered signals"
@@ -262,6 +262,19 @@ module Resque
           shutdown
         end
       end
+    end
+
+    # Stop processing jobs after the current one has completed (if we're
+    # currently running one).
+    def pause_processing
+      log "USR2 received; pausing job processing"
+      @paused = true
+    end
+
+    # Start processing jobs again after a pause
+    def unpause_processing
+      log "CONT received; resuming job processing"
+      @paused = false
     end
 
     # Looks for any workers which should be running on this server
@@ -295,8 +308,6 @@ module Resque
 
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
-      done_working
-
       redis.srem(:workers, self)
       redis.del("worker:#{self}:started")
 
@@ -413,6 +424,14 @@ module Resque
       `ps -A -o pid,command | grep [r]esque`.split("\n").map do |line|
         line.split(' ')[0]
       end
+    end
+
+    # Given a string, sets the procline ($0) and logs.
+    # Procline is always in the format of:
+    #   resque-VERSION: STRING
+    def procline(string)
+      $0 = "resque-#{Resque::Version}: #{string}"
+      log! $0
     end
 
     # Log a message to STDOUT if we are verbose or very_verbose.

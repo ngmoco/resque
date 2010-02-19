@@ -205,8 +205,8 @@ module Resque
     def resque
       Resque
     end
-    
-    def tabs
+
+    def self.tabs
       @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
     end
   end

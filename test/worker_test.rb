@@ -115,6 +115,14 @@ context "Resque::Worker" do
     assert_equal [], Resque.workers
   end
 
+  test "removes worker with stringified id" do
+    @worker.work(0) do
+      worker_id = Resque.workers[0].to_s
+      Resque.remove_worker(worker_id)
+      assert_equal [], Resque.workers
+   end
+  end
+
   test "records what it is working on" do
     @worker.work(0) do
       task = @worker.job
@@ -190,7 +198,8 @@ context "Resque::Worker" do
 
   test "sets $0 while working" do
     @worker.work(0) do
-      assert_equal "resque: Processing jobs since #{Time.now.to_i}", $0
+      ver = Resque::Version
+      assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
     end
   end
 
@@ -228,20 +237,8 @@ context "Resque::Worker" do
     end
   end
 
-  test "cleans up the job_set on start (more crash recovery)" do
-    # run-once style job
-    Resque::Job.create_once(:jobs, SomeJob, 20, '/tmp')
-
-    # simulate starting a job without finishing
-    doomed_worker = Resque::Worker.new(:jobs)
-    doomed_worker.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
-    doomed_worker.register_worker
-
-    job = doomed_worker.reserve
-    # kill -9 doomed_worker
-    assert_equal 1, Resque.redis.scard("job_set:jobs")
-
+  test "Processed jobs count" do
     @worker.work(0)
-    assert_equal 0, Resque.redis.scard("job_set:jobs")
+    assert_equal 1, Resque.info[:processed]
   end
 end
