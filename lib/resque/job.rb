@@ -43,6 +43,8 @@ module Resque
       if klass.to_s.empty?
         raise NoClassError.new("Jobs must be given a class.")
       end
+      
+      Resque.push(queue, :class => klass.to_s, :args => args)
     end
 
     # Removes a job from a queue. Expects a string queue name, a
