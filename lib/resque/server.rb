@@ -32,13 +32,14 @@ module Resque
         request.env['SCRIPT_NAME']
       end
 
-      def class_if_current(page = '')
-        'class="current"' if current_page.include? page.to_s
+      def class_if_current(path = '')
+        'class="current"' if current_page.start_with?(path.to_s)
       end
 
       def tab(name)
         dname = name.to_s.downcase
-        "<li #{class_if_current(dname)}><a href='#{url dname}'>#{name}</a></li>"
+        path = url(dname)
+        "<li #{class_if_current(path)}><a href='#{path}'>#{name}</a></li>"
       end
 
       def tabs
@@ -59,19 +60,23 @@ module Resque
           Resque.redis.scard(key)
         when 'string'
           Resque.redis.get(key).length
+        when 'zset'
+          Resque.redis.zcard(key)
         end
       end
 
-      def redis_get_value_as_array(key)
-        case redis_get_type(key)
+      def redis_get_value_as_array(key, start=0)
+        case Resque.redis.type(key)
         when 'none'
           []
         when 'list'
-          Resque.redis.lrange(key, 0, 20)
+          Resque.redis.lrange(key, start, start + 20)
         when 'set'
-          Resque.redis.smembers(key)
+          Resque.redis.smembers(key)[start..(start + 20)]
         when 'string'
           [Resque.redis.get(key)]
+        when 'zset'
+          Resque.redis.zrange(key, start, start + 20)
         end
       end
 
@@ -89,7 +94,7 @@ module Resque
       ensure
         @partial = false
       end
-      
+
       def poll
         if @polling
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
@@ -127,7 +132,7 @@ module Resque
         show page
       end
     end
-    
+
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
         content_type "text/plain"
@@ -143,7 +148,7 @@ module Resque
         show :failed
       end
     end
-    
+
     post "/failed/clear" do
       Resque::Failure.clear
       redirect u('failed')
