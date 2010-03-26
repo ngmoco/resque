@@ -112,6 +112,7 @@ module Resque
 
         if not @paused and job = reserve
           log "got: #{job.inspect}"
+          run_hook :before_fork
 
           if @child = fork
             rand # Reseeding
@@ -142,6 +143,7 @@ module Resque
       return unless job ||= reserve
 
       begin
+        run_hook :after_fork, job
         working_on job
         job.perform
       rescue Object => e
@@ -202,6 +204,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
+      run_hook :before_first_fork
       register_worker
     end
 
@@ -306,9 +309,20 @@ module Resque
       started!
     end
 
+    # Runs a named hook, passing along any arguments.
+    def run_hook(name, *args)
+      return unless hook = Resque.send(name)
+      msg = "Running #{name} hook"
+      msg << " with #{args.inspect}" if args.any?
+      log msg
+
+      args.any? ? hook.call(*args) : hook.call
+    end
+
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
       redis.srem(:workers, self)
+      redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
 
       Stat.clear("processed:#{self}")

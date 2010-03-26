@@ -7,6 +7,7 @@ module Resque
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S"),
           :payload   => payload,
+          :exception => exception.class.to_s,
           :error     => exception.to_s,
           :backtrace => exception.backtrace,
           :worker    => worker.to_s,
@@ -25,17 +26,14 @@ module Resque
       end
       
       def self.clear
-        Resque.redis.delete('resque:failed')
+        Resque.redis.del(:failed)
       end
       
-      def self.remove(index = 0)
-        Resque.logger.info("Failure Backend Remove #{index}")
-        if index == 0
-          Resque.redis.lpop(:failed)
-        else
-          value = Resque.redis.lindex(:failed, index)
-          Resque.redis.lrem(:failed, 1, value)
-        end
+      def self.requeue(index)
+        item = all(index)
+        item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+        Resque.redis.lset(:failed, index, Resque.encode(item))
+        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
     end
   end

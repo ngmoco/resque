@@ -63,6 +63,53 @@ module Resque
     self.redis
   end
 
+  # The `before_first_fork` hook will be run in the **parent** process
+  # only once, before forking to run the first job. Be careful- any
+  # changes you make will be permanent for the lifespan of the
+  # worker.
+  #
+  # Call with a block to set the hook.
+  # Call with no arguments to return the hook.
+  def before_first_fork(&block)
+    block ? (@before_first_fork = block) : @before_first_fork
+  end
+
+  # Set a proc that will be called in the parent process before the
+  # worker forks for the first time.
+  def before_first_fork=(before_first_fork)
+    @before_first_fork = before_first_fork
+  end
+
+  # The `before_fork` hook will be run in the **parent** process
+  # before every job, so be careful- any changes you make will be
+  # permanent for the lifespan of the worker.
+  #
+  # Call with a block to set the hook.
+  # Call with no arguments to return the hook.
+  def before_fork(&block)
+    block ? (@before_fork = block) : @before_fork
+  end
+
+  # Set the before_fork proc.
+  def before_fork=(before_fork)
+    @before_fork = before_fork
+  end
+
+  # The `after_fork` hook will be run in the child process and is passed
+  # the current job. Any changes you make, therefor, will only live as
+  # long as the job currently being processes.
+  #
+  # Call with a block to set the hook.
+  # Call with no arguments to return the hook.
+  def after_fork(&block)
+    block ? (@after_fork = block) : @after_fork
+  end
+
+  # Set the after_fork proc.
+  def after_fork=(after_fork)
+    @after_fork = after_fork
+  end
+
   def to_s
     "Resque Client connected to #{redis.server}"
   end
@@ -245,9 +292,8 @@ module Resque
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
-    redis_keys = redis.keys("*").flatten
-    redis_keys.map do |key|
-      key.sub('resque:', '')
+    redis.keys("*").map do |key|
+      key.sub("#{redis.namespace}:", '')
     end
   end
 end

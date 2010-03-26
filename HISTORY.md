@@ -1,8 +1,38 @@
-## 1.5.1 (2010-??-??)
+## 1.6.1 (2010-03-25)
+
+* Bugfix: Workers may not be clearing their state correctly on
+  shutdown
+* Added example monit config.
+* Exception class is now recorded when an error is raised in a
+  worker.
+* web: Unit tests
+* web: Show namespace in header and footer
+* web: Remove a queue
+* web: Retry failed jobs
+
+## 1.6.0 (2010-03-09)
+
+* Added `before_first_fork`, `before_fork`, and `after_fork` hooks.
+* Hoptoad: Added server_environment config setting
+* Hoptoad bugfix: Don't depend on RAILS_ROOT
+* 1.8.6 compat fixes
+
+## 1.5.2 (2010-03-03)
+
+* Bugfix: JSON check was crazy.
+
+## 1.5.1 (2010-03-03)
 
 * `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
 * Hoptoad notifier improvements
+* Specify the namespace with `resque-web` by passing `-N namespace`
+* Bugfix: Don't crash when trying to parse invalid JSON.
+* Bugfix: Non-standard namespace support
+* Web: Red backgound for queue "failed" only shown if there are failed jobs.
 * Web bugfix: Tabs highlight properly now
+* Web bugfix: ZSET partial support in stats
+* Web bugfix: Deleting failed jobs works again
+* Web bugfix: Sets (or zsets, lists, etc) now paginate.
 
 ## 1.5.0 (2010-02-17)
 

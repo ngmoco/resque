@@ -33,7 +33,7 @@ module Resque
       end
 
       def class_if_current(path = '')
-        'class="current"' if current_page.start_with?(path.to_s)
+        'class="current"' if current_page[0, path.size] == path
       end
 
       def tab(name)
@@ -132,6 +132,11 @@ module Resque
         show page
       end
     end
+    
+    post "/queues/:id/remove" do
+      Resque.remove_queue(params[:id])
+      redirect u('queues')
+    end
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
@@ -153,27 +158,9 @@ module Resque
       Resque::Failure.clear
       redirect u('failed')
     end
-
-    post "/failed/remove" do
-      if !request.params['index'].nil? && !request.params['index'].empty?
-        index = params['index'].to_i
-        failed = Resque::Failure.all(index)
-        if failed
-          Resque::Failure.remove(index)
-        end
-      end
-      redirect u('failed')
-    end
-
-    post "/failed/rerun" do
-      if !request.params['index'].nil? && !request.params['index'].empty?
-        index = params['index'].to_i
-        failed = Resque::Failure.all(index)
-        if failed
-          Resque.push(failed['queue'], :class =>  failed['payload']['class'], :args => failed['payload']['args'])
-          Resque::Failure.remove(index)
-        end
-      end
+    
+    get "/failed/requeue/:index" do
+      Resque::Failure.requeue(params[:index])
       redirect u('failed')
     end
 

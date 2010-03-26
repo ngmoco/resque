@@ -8,6 +8,8 @@ module Resque
     #
     # To use it, put this code in an initializer, Rake task, or wherever:
     #
+    #   require 'resque/failure/hoptoad'
+    #
     #   Resque::Failure::Hoptoad.configure do |config|
     #     config.api_key = 'blah'
     #     config.secure = true
@@ -15,6 +17,9 @@ module Resque
     #     # optional proxy support
     #     config.proxy_host = 'x.y.z.t'
     #     config.proxy_port = 8080
+    #
+    #     # server env support, defaults to RAILS_ENV or RACK_ENV
+    #     config.server_environment = "test"
     #   end
     class Hoptoad < Base
       # From the hoptoad plugin
@@ -22,6 +27,7 @@ module Resque
 
       class << self
         attr_accessor :secure, :api_key, :proxy_host, :proxy_port
+        attr_accessor :server_environment
       end
 
       def self.count
@@ -96,7 +102,7 @@ module Resque
             end
           end
           x.tag!("server-environment") do
-            x.tag!("environment-name",RAILS_ENV)
+            x.tag!("environment-name",server_environment)
           end
 
         end
@@ -105,7 +111,7 @@ module Resque
       def fill_in_backtrace_lines(x)
         exception.backtrace.each do |unparsed_line|
           _, file, number, method = unparsed_line.match(INPUT_FORMAT).to_a
-          x.line :file=>file,:number=>number
+          x.line :file => file,:number => number
         end
       end
 
@@ -115,6 +121,11 @@ module Resque
 
       def api_key
         self.class.api_key
+      end
+
+      def server_environment
+        return self.class.server_environment if self.class.server_environment
+        defined?(RAILS_ENV) ? RAILS_ENV : (ENV['RACK_ENV'] || 'development')
       end
     end
   end

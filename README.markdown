@@ -410,6 +410,10 @@ the script as the final argument:
 
     $ resque-web -p 8282 rails_root/config/initializers/resque.rb
 
+You can also set the namespace directly using `resque-web`:
+
+    $ resque-web -p 8282 -N myapp
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
@@ -644,6 +648,40 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
+Worker Hooks
+------------
+
+If you wish to have a Proc called before the worker forks for the
+first time, you can add it in the initializer like so:
+
+    Resque.before_first_fork do
+      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+    end
+
+You can also run a hook before _every_ fork:
+
+    Resque.before_fork do |job|
+      puts "CALL ME BEFORE THE WORKER FORKS"
+    end
+
+The `before_fork` hook will be run in the **parent** process. So, be
+careful - any changes you make will be permanent for the lifespan of
+the worker.
+
+And after forking:
+
+    Resque.after_fork do |job|
+      puts "CALL ME AFTER THE WORKER FORKS"
+    end
+
+The `after_fork` hook will be run in the child process and is passed
+the current job. Any changes you make, therefor, will only live as
+long as the job currently being processes.
+
+All hooks can also be set using a setter, e.g.
+
+    Resque.after_fork = proc { puts "called" }
+
 
 Namespaces
 ----------
@@ -725,6 +763,9 @@ Once you've made your great commits:
 4. Create an [Issue][2] with a link to your branch
 5. That's it!
 
+You might want to checkout our [Contributing][cb] wiki page for information
+on coding standards, new features, etc.
+
 
 Mailing List
 ------------
@@ -760,3 +801,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [2]: http://github.com/defunkt/resque/issues
 [sv]: http://semver.org/
 [rs]: http://github.com/defunkt/redis-namespace
+[cb]: http://wiki.github.com/defunkt/resque/contributing

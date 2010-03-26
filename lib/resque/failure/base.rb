@@ -48,13 +48,13 @@ module Resque
       # Clear all failure objects
       def self.clear
       end
+      
+      def self.requeue(index)
+      end
 
       # Logging!
       def log(message)
         @worker.log(message)
-      end
-      
-      def self.remove(index)
       end
     end
   end
