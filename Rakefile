@@ -1,53 +1,59 @@
+#
+# Setup
+#
+
 load 'tasks/redis.rake'
+require 'rake/testtask'
 
 $LOAD_PATH.unshift 'lib'
 require 'resque/tasks'
 
+def command?(command)
+  system("type #{command} > /dev/null")
+end
+
+
+#
+# Tests
+#
+
 task :default => :test
 
-desc "Run tests"
+desc "Run the test suite"
 task :test do
-  # Don't use the rake/testtask because it loads a new
-  # Ruby interpreter - we want to run tests with the current
-  # `rake` so our library manager still works
-  Dir['test/*_test.rb'].each do |f|
-    require f
+  rg = command?(:rg)
+  Dir['test/**/*_test.rb'].each do |f|
+    rg ? sh("rg #{f}") : ruby(f)
   end
 end
 
-desc "Activate kicker - gem install kicker"
-task :kick do
-  exec "kicker -e rake lib test"
+if command? :kicker
+  desc "Launch Kicker (like autotest)"
+  task :kicker do
+    puts "Kicking... (ctrl+c to cancel)"
+    exec "kicker -e rake test lib examples"
+  end
 end
+
+
+#
+# Gem
+#
 
 task :install => [ 'redis:install', 'dtach:install' ]
 
-desc "Build a gem"
-task :gem => [ :test, :gemspec, :build ]
-
 begin
-  require 'jeweler'
-  require 'resque/version'
-
-  Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "resque"
-    gemspec.summary = ""
-    gemspec.description = ""
-    gemspec.email = "chris@ozmm.org"
-    gemspec.homepage = "http://github.com/defunkt/resque"
-    gemspec.authors = ["Chris Wanstrath"]
-    gemspec.version = Resque::Version
-
-    gemspec.add_dependency "redis"
-    gemspec.add_dependency "redis-namespace"
-    gemspec.add_dependency "vegas", ">=0.1.2"
-    gemspec.add_dependency "sinatra", ">=0.9.2"
-    gemspec.add_development_dependency "jeweler"
-  end
+  require 'mg'
+  MG.new("resque.gemspec")
 rescue LoadError
-  puts "Jeweler not available. Install it with: "
-  puts "gem install jeweler"
+  warn "mg not available."
+  warn "Install it with: gem i mg"
 end
+
+
+#
+# Documentation
+#
 
 begin
   require 'sdoc_helpers'
@@ -55,12 +61,18 @@ rescue LoadError
   puts "sdoc support not enabled. Please gem install sdoc-helpers."
 end
 
+
+#
+# Publishing
+#
+
 desc "Push a new version to Gemcutter"
-task :publish => [ :test, :gemspec, :build ] do
-  system "git tag v#{Resque::Version}"
-  system "git push origin v#{Resque::Version}"
-  system "git push origin master"
-  system "gem push pkg/resque-#{Resque::Version}.gem"
-  system "git clean -fd"
+task :publish => "gem:publish" do
+  require 'resque/version'
+
+  sh "git tag v#{Resque::Version}"
+  sh "git push origin v#{Resque::Version}"
+  sh "git push origin master"
+  sh "git clean -fd"
   exec "rake pages"
 end
