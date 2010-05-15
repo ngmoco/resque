@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+log = File.new("/tmp/resque_check_queue.log", "w")
+log << Time.new.to_s << "\n\n"
+
+ENV['RAILS_ENV'] = ENV['RAILS_ENV'] || 'production'
+queue_data = `/var/apps/resque_queue_sizes.sh 2> /tmp/resque_queue_sizes.err`
+log << queue_data << "\n"
+queue_data = queue_data.split("\n")
+
+data = {}
+output = false
+queue_data.each do |line|
+  if line == '## START ##'
+    output = true
+  elsif output
+    values = line.split(':')
+    data[values[0]] = values[1].to_i
+  end
+end
+
+ngout = ""
+critical = false
+ret = 0
+
+critical = data.empty?
+data.each { |key,value| critical = value > 1000 unless critical }
+if critical
+  ngout << "CRITICAL "
+  ret = 2
+else
+  ngout << "OK "
+end
+
+ngout << "- queue sizes: "
+data.each do |key, value|
+  ngout << "#{key} #{value}; "
+end
+
+puts ngout
+log << ngout << "\n\n\n"
+exit ret
+
