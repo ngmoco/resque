@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'yaml'
+require 'json'
+require 'active_support'
+
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../gems/redis-1.0.7/lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../gems/redis-namespace-0.1.0/lib'
+
+yml = YAML.load(IO.read(File.join(File.dirname(__FILE__), '..', '..', '..', '..', "config", "redis.yml")))
+redis_yml = yml[ENV['RAILS_ENV']]
+redis_yml = HashWithIndifferentAccess.new(redis_yml)
+if redis_yml && (redis_yml[:host] || redis_yml[:hosts])
+  require 'redis/distributed'
+  require 'resque'
+
+  leaderboard_redis = redis_yml.delete('leaderboards') || {}
+  redis = nil
+  if (redis_yml[:host])
+    redis = Redis::Client.new(redis_yml)
+  elsif (redis_yml[:hosts])
+    redis = Redis::Distributed.new(redis_yml)
+  end
+  Resque.redis = redis
+
+
+  if Resque.queues.any?
+    puts "## START ##"
+    Resque.queues.each do |queue|
+      puts "#{queue}:#{Resque.size(queue)}"
+    end
+  else
+    abort "None"
+  end
+end
