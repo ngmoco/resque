@@ -1,4 +1,5 @@
-<%start  = params[:start].to_i %>
+
+<%start = params[:start].to_i %>
 <%failed = Resque::Failure.all(start, 20)%>
 <% index = 0 %>
 
@@ -46,7 +47,6 @@
       <div class='r'>
       </div>
     </li>
-	<%index = index + 1%>
   <%end%>
 </ul>
 

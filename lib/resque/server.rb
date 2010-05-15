@@ -46,12 +46,8 @@ module Resque
         Resque::Server.tabs
       end
       
-      def redis_get_type(key)
-        Resque.redis.type(key) 
-      end
-
       def redis_get_size(key)
-        case redis_get_type(key)
+        case Resque.redis.type(key)
         when 'none'
           []
         when 'list'

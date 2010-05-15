@@ -17,7 +17,7 @@
         <% data = worker.job %>
         <% queue = data['queue'] %>
         <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
-        <td><span class="time"><%= format_date data['run_at'] %></span></td>
+        <td><span class="time"><%= data['run_at'] %></span></td>
         <td>
           <code><%= data['payload']['class'] %></code>
         </td>
@@ -57,7 +57,7 @@
         <td class='process'>
           <% if job['queue'] %>
             <code><%= job['payload']['class'] %></code>
-            <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= format_date job['run_at'] %></a></small>
+            <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
           <% else %>
             <span class='waiting'>Waiting for a job...</span>
           <% end %>
