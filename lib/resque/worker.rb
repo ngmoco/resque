@@ -118,7 +118,15 @@ module Resque
           if @child = fork
             rand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            Process.wait
+            begin
+              timeout(3) do
+                Process.wait
+              end
+            rescue Timeout::Error
+              retry
+            rescue SystemError
+              logger.info("Timeout retry had no child.") if logger
+            end
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             perform(job, &block)
