@@ -1,3 +1,41 @@
+## 1.9.4 (2010-06-14)
+
+* Bugfix: Multiple failure backend gets exception information when created
+
+## 1.9.3 (2010-06-14)
+
+* Bugfix: Resque#queues always returns an array
+
+## 1.9.2 (2010-06-13)
+
+* Bugfix: Worker.all returning nil fix
+* Bugfix: Make ps -o more cross platform friendly
+
+## 1.9.1 (2010-06-04)
+
+* Less strict JSON dependency
+* Included HISTORY.md in gem
+
+## 1.9.0 (2010-06-04)
+
+* Redis 2 support
+* Depend on redis-namespace 0.5.0
+* Added Resque::VERSION constant (alias of Resque::Version)
+* Bugfix: Specify JSON dependency
+* Bugfix: Hoptoad plugin now works on 1.9
+
+## 1.8.5 (2010-05-18)
+
+* Bugfix: Be more liberal in which Redis clients we accept.
+
+## 1.8.4 (2010-05-18)
+
+* Try to resolve redis-namespace dependency issue
+
+## 1.8.3 (2010-05-17)
+
+* Depend on redis-rb ~> 1.0.7
+
 ## 1.8.2 (2010-05-03)
 
 * Bugfix: Include "tasks/" dir in RubyGem
