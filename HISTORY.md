@@ -1,3 +1,48 @@
+## 1.11.0 (2010-08-23)
+
+* Web UI: Group /workers page by hostnames
+
+## 1.10.0 (2010-08-23)
+
+* Support redis:// string format in `Resque.redis=`
+* Using new cross-platform JSON gem.
+* Added `after_enqueue` plugin hook.
+* Added `shutdown?` method which can be overridden.
+* Added support for the "leftright" gem when running tests.
+* Grammarfix: In the README
+
+## 1.9.10 (2010-08-06)
+
+* Bugfix: before_fork should get passed the job
+
+## 1.9.9 (2010-07-26)
+
+* Depend on redis-namespace 0.8.0
+* Depend on json_pure instead of json (for JRuby compat)
+* Bugfix: rails_env display in stats view
+
+## 1.9.8 (2010-07-20)
+
+* Bugfix: Worker.all should never return nil
+* monit example: Fixed Syntax Error and adding environment to the rake task
+* redis rake task: Fixed typo in copy command
+
+## 1.9.7 (2010-07-09)
+
+* Improved memory usage in Job.destroy
+* redis-namespace 0.7.0 now required
+* Bugfix: Reverted $0 changes
+* Web Bugfix: Payload-less failures in the web ui work
+
+## 1.9.6 (2010-06-22)
+
+* Bugfix: Rakefile logging works the same as all the other logging
+
+## 1.9.5 (2010-06-16)
+
+* Web Bugfix: Display the configured namespace on the stats page
+* Revert Bugfix: Make ps -o more cross platform friendly
+
 ## 1.9.4 (2010-06-14)
 
 * Bugfix: Multiple failure backend gets exception information when created

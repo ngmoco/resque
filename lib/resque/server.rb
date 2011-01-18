@@ -80,6 +80,21 @@ module Resque
         Array(args).map { |a| a.inspect }.join("\n")
       end
 
+      def worker_hosts
+        @worker_hosts ||= worker_hosts!
+      end
+
+      def worker_hosts!
+        hosts = Hash.new { [] }
+
+        Resque.workers.each do |worker|
+          host, _ = worker.to_s.split(':')
+          hosts[host] += [worker.to_s]
+        end
+
+        hosts
+      end
+
       def partial?
         @partial
       end
@@ -136,7 +151,7 @@ module Resque
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
-        content_type "text/plain"
+        content_type "text/html"
         @polling = true
         show(page.to_sym, false).gsub(/\s{1,}/, ' ')
       end
@@ -190,7 +205,7 @@ module Resque
         stats << "queues.#{queue}=#{Resque.size(queue)}"
       end
 
-      content_type 'text/plain'
+      content_type 'text/html'
       stats.join "\n"
     end
 

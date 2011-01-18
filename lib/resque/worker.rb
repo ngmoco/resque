@@ -24,7 +24,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      Array(redis.smembers(:workers)).map { |id| find(id) }
+      Array(redis.smembers(:workers)).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -108,11 +108,11 @@ module Resque
       startup
 
       loop do
-        break if @shutdown
+        break if shutdown?
 
         if not @paused and job = reserve
           log "got: #{job.inspect}"
-          run_hook :before_fork
+          run_hook :before_fork, job
           working_on job
 
           if @child = fork
@@ -271,6 +271,11 @@ module Resque
     def shutdown!
       shutdown
       kill_child
+    end
+
+    # Should this worker shutdown as soon as current job is finished?
+    def shutdown?
+      @shutdown
     end
 
     # Kills the forked child immediately, without remorse. The job it
@@ -455,7 +460,7 @@ module Resque
     # Returns an array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def worker_pids
-      `ps -A -o pid,comm | grep [r]esque`.split("\n").map do |line|
+      `ps -A -o pid,command | grep [r]esque`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end

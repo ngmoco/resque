@@ -47,8 +47,12 @@ module Resque
       if klass.to_s.empty?
         raise NoClassError.new("Jobs must be given a class.")
       end
-      
-      Resque.push(queue, :class => klass.to_s, :args => args)
+
+      ret = Resque.push(queue, :class => klass.to_s, :args => args)
+      Plugin.after_enqueue_hooks(klass).each do |hook|
+        klass.send(hook, *args)
+      end
+      ret
     end
 
     # Removes a job from a queue. Expects a string queue name, a
@@ -80,15 +84,14 @@ module Resque
       queue = "queue:#{queue}"
       destroyed = 0
 
-      redis.lrange(queue, 0, -1).each do |string|
-        json   = decode(string)
-
-        match  = json['class'] == klass
-        match &= json['args'] == args unless args.empty?
-
-        if match
-          destroyed += redis.lrem(queue, 0, string).to_i
+      if args.empty?
+        redis.lrange(queue, 0, -1).each do |string|
+          if decode(string)['class'] == klass
+            destroyed += redis.lrem(queue, 0, string).to_i
+          end
         end
+      else
+        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
       end
 
       destroyed
